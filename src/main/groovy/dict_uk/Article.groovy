@@ -5,7 +5,7 @@ import groovy.transform.CompileStatic
 
 @CompileStatic
 @Canonical
-class Lemma {
+class Article {
     final String form
     final String tags
 }

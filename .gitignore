@@ -10,4 +10,5 @@ classes/
 .project
 .settings
 .classpath
-dict_flex.txt
+bin
+dict_flex.*

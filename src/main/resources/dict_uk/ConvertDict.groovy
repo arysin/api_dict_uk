@@ -1,26 +1,51 @@
 #!/bin/env groovy
 
 def out = new File("dict_flex.txt")
+out.text = ""
 
-def last = null
-def hasFlex = false
+def outIndex = new File("dict_flex.idx")
+outIndex.text = ""
+
+def lastLemma = null
+def sz = 0
+
+def idxMap = [:]
+def lastIdx = null
 
 new File(args[0]).eachLine {
 
-            if( it.startsWith(" ") ) {
-//                if( ! hasFlex ) {
-//                    out << "|"
-//                }
+	if( ! it.startsWith(" ") ) {
+		def lemma = it.split(" ")[0]
 
-                out << "|" << it.trim()
-                hasFlex = true
-            }
-            else {
-                if( last )
-                    out << "\n"
-                out << it
-                last = it
-                hasFlex = false
-            }
+		if( lastLemma != lemma ) {
+			if( lastIdx ) {
+				lastIdx[1] = out.size() - lastIdx[0]
+			}
+
+			if( lastLemma ) {
+				out << "\n"
+			}
+
+			lastIdx = [out.size(), 0]
+			idxMap[ lemma ] = lastIdx
+
+			lastLemma = lemma
+		}
+		else {
+//			lastIdx[1] += it.size() + 1
+			out << "\n"
+		}
+
+		out << it
+	}
+	else {
+		def str =  "|" + it.trim()
+//		lastIdx[1] += str.size()
+
+		out << str
+	}
 
 }
+
+outIndex.text = idxMap.collect { k,v -> k + " " + v.join(" ") }.join("\n")
+

@@ -33,8 +33,7 @@ class SearchController {
         @ApiImplicitParam(name = 'withNeighborArticles', paramType = 'query', required =false, dataType='boolean', value='Add neighboring articles in return')
     ])
     def index() {
-        println "== " + params
-    
+
         if( ! validateRequest(request) )
             return
 

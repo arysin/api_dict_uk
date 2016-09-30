@@ -6,6 +6,6 @@ import groovy.transform.CompileStatic
 @CompileStatic
 @Canonical
 class SearchResult {
-    final List<Lemma> articles
-    final List<Lemma> neighbors
+    final List<Article> articles
+    final List<Article> neighbors
 }
