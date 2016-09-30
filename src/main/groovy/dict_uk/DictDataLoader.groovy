@@ -1,5 +1,7 @@
 package dict_uk
 
+import groovy.transform.Canonical;
+
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.nio.file.OpenOption;
@@ -9,7 +11,9 @@ import java.nio.file.StandardOpenOption;
 
 @Singleton(strict=false)
 class DictDataLoader {
-    final Map<String, List<Integer>> indexes = new LinkedHashMap(265000)
+	final Comparator<String> comparator = new UkDictComparator()
+    final Map<String, IndexRecord> indexes = new LinkedHashMap(265000)
+	final List<String> indexKeys
     final def file = DictDataLoader.class.getResource("dict_flex.txt").getFile()
 
     DictDataLoader() {
@@ -22,12 +26,14 @@ class DictDataLoader {
         DictDataLoader.class.getResource("dict_flex.idx").eachLine {
 
             def (word, idx, sz) = it.split(" ")
-            indexes[word] = [Integer.parseInt(idx), Integer.parseInt(sz), indexes.size()]
+            indexes[word] = new IndexRecord(Integer.parseInt(idx), Integer.parseInt(sz), indexes.size())
 
             if( indexes.size() % 10000 == 0 )
             	println "\t" + indexes.size()
         }
 
+		indexKeys = new ArrayList(indexes.keySet())
+		
         def tm2 = System.currentTimeMillis()
         println "Words loaded: " + indexes.size()
         println "== timing: " + (tm2-tm1) + " ms"
@@ -39,31 +45,46 @@ class DictDataLoader {
         if( ! (word in indexes) )
 			return []
 
-        def (idx, sz) = indexes[word]
+        def indexRecord = indexes[word]
 
-		def str = readArtice(idx, sz)
+		def str = readArtice(indexRecord.pos, indexRecord.length)
 		
-        def lines = str.split(/\n/)
+		parseArticles(str)
+    }
+	
+	List<Article> parseArticles(str) {
+		def lines = str.split(/\n/)
 
-        lines.collect { line ->
+		lines.collect { line ->
 			line.split(/\|/).collect {
 				def (form, tag) = it.split(" ")
 				new Article(form, tag)
 			}
-        }
-
-    }
+		}
+	}
 
 	List<String> findNeighbors(word) {
-        if( word in indexes ) {
-			def idx = indexes[word][2]
-			def from = Math.max(idx - 7, 0)
-			def to = Math.min(idx + 7, indexes.size()-1)
-			
-			def range = new ArrayList(indexes.keySet())[from..to]
-        }
+		def idx = (word in indexes) ? indexes[word].idx : findNearestIdx(word)
+
+		def from = Math.max(idx - 7, 0)
+		def to = Math.min(idx + 7, indexes.size()-1)
+
+		List<IndexRecord> values = new ArrayList(indexes.values())
+
+		def readFrom = values[from].pos
+		def readLength = 0
+		for(int i=from; i<=to; i++) {
+			readLength += values[i].length + 1
+		}
+
+		def str = readArtice(readFrom, readLength)
+		parseArticles(str).collect() { it[0..0] }
 	}
-	
+
+	private findNearestIdx(word) {
+		- Collections.binarySearch(indexKeys, word, comparator)
+	}
+		
 	private readArtice(def pos, int sz) {
 		ByteBuffer buffer = ByteBuffer.allocate(sz)
 
@@ -87,7 +108,12 @@ class DictDataLoader {
 		finally {
 			fc.close()
 		}
-
-
+	}
+	
+	@Canonical
+	private static class IndexRecord {
+		final int pos;
+		final int length;
+		final int idx;
 	}
 }
