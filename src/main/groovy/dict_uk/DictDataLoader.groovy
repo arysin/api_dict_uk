@@ -5,6 +5,7 @@ import groovy.transform.Canonical;
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.nio.file.OpenOption;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
@@ -14,16 +15,17 @@ class DictDataLoader {
 	final Comparator<String> comparator = new UkDictComparator()
     final Map<String, IndexRecord> indexes = new LinkedHashMap(265000)
 	final List<String> indexKeys
-    final def file = DictDataLoader.class.getResource("dict_flex.txt").getFile()
+    final URL articleFilename = DictDataLoader.class.getResource("dict_flex.txt")
+	final URL indexFilename = DictDataLoader.class.getResource("dict_flex.idx")
 
     DictDataLoader() {
-        println "Loading words indexes..."
+        println "Loading article indexes from $indexFilename, size: " + new File(indexFilename.getFile()).size()
 
         def last = null
 
         long tm1 = System.currentTimeMillis()
 
-        DictDataLoader.class.getResource("dict_flex.idx").eachLine {
+        new File(indexFilename.getFile()).eachLine {
 
             def (word, idx, sz) = it.split(" ")
             indexes[word] = new IndexRecord(Integer.parseInt(idx), Integer.parseInt(sz), indexes.size())
@@ -35,7 +37,7 @@ class DictDataLoader {
 		indexKeys = new ArrayList(indexes.keySet())
 		
         def tm2 = System.currentTimeMillis()
-        println "Words loaded: " + indexes.size()
+        println "Indexes loaded: " + indexes.size()
         println "== timing: " + (tm2-tm1) + " ms"
     }
 
@@ -88,7 +90,7 @@ class DictDataLoader {
 	private readArtice(def pos, int sz) {
 		ByteBuffer buffer = ByteBuffer.allocate(sz)
 
-		FileChannel fc = FileChannel.open(Paths.get(file)) //, new OpenOption[]{StandardOpenOption.READ})
+		FileChannel fc = FileChannel.open(Paths.get(articleFilename.getFile())) //, new OpenOption[]{StandardOpenOption.READ})
 		try {
 			fc.position(pos)
 
