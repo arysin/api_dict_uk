@@ -23,14 +23,14 @@ class SearchController {
 
     @ApiOperation(value = "Searches the work in the dictionary", 
                 httpMethod = "GET",
-                response = SearchResult.class)
+				responseContainer = "List",
+                response = Article.class)
     @ApiResponses([
         @ApiResponse(code = 400, message = "Invalid parameter provided"),
         @ApiResponse(code = 404, message = "Word not found"),
     ])
     @ApiImplicitParams([
         @ApiImplicitParam(name = 'word', paramType = 'query', required = true, dataType='string', value='Word to search'),
-        @ApiImplicitParam(name = 'withNeighborArticles', paramType = 'query', required =false, dataType='boolean', value='Add neighboring articles in return')
     ])
     def index() {
 
@@ -38,14 +38,14 @@ class SearchController {
             return
 
         try {
-            def response = searchService.search(params.word, params)
+            List<Article> articles = searchService.findWord(params.word, params)
             
-            if( ! response.articles ) {
-                render(status: 404, text: response as JSON)
+            if( ! articles ) {
+                render(status: 404)
                 return
             }
             
-            render response as JSON
+            render articles as JSON
         }
         catch(Exception e) {
             e.printStackTrace()
@@ -54,6 +54,34 @@ class SearchController {
         }
     }
 
+    @ApiOperation(value = "Searches the word neighbors in the dictionary", 
+                httpMethod = "GET",
+				responseContainer = "List",
+                response = String.class)
+    @ApiResponses([
+        @ApiResponse(code = 400, message = "Invalid parameter provided"),
+    ])
+    @ApiImplicitParams([
+        @ApiImplicitParam(name = 'word', paramType = 'query', required = true, dataType='string', value='Word to search'),
+    ])
+	def findNeighbors() {
+
+		if( ! validateRequest(request) )
+			return
+
+		try {
+			List<String> neighbors = searchService.findNeighbors(params.word, params)
+
+			render neighbors as JSON
+		}
+		catch(Exception e) {
+			e.printStackTrace()
+			render(status: 500, text: "Internal error: " + e.getMessage())
+			return
+		}
+	}
+
+	
     def validateRequest(request) {
         if( ! params.word ) {
             render(status: 400, text: "\"word\" field not specified in the request")
