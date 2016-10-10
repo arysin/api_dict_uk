@@ -35,9 +35,9 @@ dependencyManagement {
 }
 
 dependencies {
-    compile "org.grails.plugins:swaggydoc-grails3:0.28.0"
-//    compile "io.springfox:springfox-swagger2:2.5.0"
-//    compile "io.springfox:springfox-swagger-ui:2.5.0"
+//    compile "org.grails.plugins:swaggydoc-grails3:0.28.0"
+    compile "io.springfox:springfox-swagger2:2.5.0"
+    compile "io.springfox:springfox-swagger-ui:2.5.0"
 
     compile "org.grails:grails-dependencies"
 

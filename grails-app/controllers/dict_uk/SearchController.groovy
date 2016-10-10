@@ -1,11 +1,12 @@
 package dict_uk
 
 
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping
+
 import grails.rest.*
 import grails.converters.*
-
-//import io.swagger.annotations.*
-import com.wordnik.swagger.annotations.*
+import io.swagger.annotations.*
 
 
 @Api(value = "Dictionary search services", 
@@ -13,6 +14,8 @@ import com.wordnik.swagger.annotations.*
     produces = 'application/json',
     consumes = 'application/json'
 )
+@Controller()
+@RequestMapping(value="/search")
 class SearchController {
     static responseFormats = ['json']
     static allowedMethods = [save: "POST"]
@@ -32,6 +35,7 @@ class SearchController {
     @ApiImplicitParams([
         @ApiImplicitParam(name = 'word', paramType = 'query', required = true, dataType='string', value='Word to search'),
     ])
+	@RequestMapping(value="/")
     def index() {
 
         if( ! validateRequest(request) )
@@ -64,6 +68,7 @@ class SearchController {
     @ApiImplicitParams([
         @ApiImplicitParam(name = 'word', paramType = 'query', required = true, dataType='string', value='Word to search'),
     ])
+	@RequestMapping(value="/findNeighbors")
 	def findNeighbors() {
 
 		if( ! validateRequest(request) )
