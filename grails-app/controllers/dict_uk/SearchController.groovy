@@ -1,18 +1,19 @@
 package dict_uk
 
 
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping
-
-import grails.rest.*
 import grails.converters.*
+import grails.rest.*
 import io.swagger.annotations.*
+
+import org.springframework.stereotype.Controller
+import org.springframework.web.bind.annotation.RequestMapping
 
 
 @Api(value = "Dictionary search services", 
     description = "Dictionary services for Ukrainian language",
     produces = 'application/json',
-    consumes = 'application/json'
+    consumes = 'application/json',
+	tags = ["dictionary"]
 )
 @Controller()
 @RequestMapping(value="/search")
@@ -24,10 +25,16 @@ class SearchController {
 
     def searchService
 
-    @ApiOperation(value = "Searches the work in the dictionary", 
-                httpMethod = "GET",
-				responseContainer = "List",
-                response = Article.class)
+    @ApiOperation(value = "Searches the word in the dictionary", 
+            httpMethod = "GET",
+			responseContainer = "List",
+            response = Article.class,
+			extensions = [
+				@Extension(properties = [
+					@ExtensionProperty(name = "x-taskClass", value = "dictionary")
+				])
+			]
+	)
     @ApiResponses([
         @ApiResponse(code = 400, message = "Invalid parameter provided"),
         @ApiResponse(code = 404, message = "Word not found"),
